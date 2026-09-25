@@ -4,12 +4,18 @@ import (
 	"context"
 	"net"
 	"os"
+	"os/exec"
 	"slices"
 
+	"github.com/cirruslabs/tart-guest-agent/internal/guestuser"
 	"github.com/cirruslabs/tart-guest-agent/pkg/v1"
 	"github.com/puzpuzpuz/xsync/v4"
 	"google.golang.org/grpc"
 )
+
+type userCommandFunc func(
+	context.Context, guestuser.User, string, []string, map[string]string, string,
+) (*exec.Cmd, []byte, error)
 
 type RPC struct {
 	v1.UnimplementedAgentServer
@@ -18,6 +24,8 @@ type RPC struct {
 	listener    net.Listener
 	execs       *xsync.Map[string, *os.Process]
 	execWrapper []string
+	users       userManager
+	userCommand userCommandFunc
 }
 
 func New(listener net.Listener, execWrapper ...string) (*RPC, error) {

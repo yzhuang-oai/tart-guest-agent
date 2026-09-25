@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"github.com/cirruslabs/tart-guest-agent/internal/execuser"
+	"github.com/cirruslabs/tart-guest-agent/internal/guestuser"
 	"github.com/cirruslabs/tart-guest-agent/pkg/v1"
 	"github.com/creack/pty"
 	"github.com/google/uuid"
@@ -44,7 +45,7 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 		return err
 	}
 	firstExecRequestCommand, ok := firstExecRequest.GetType().(*v1.ExecRequest_Command_)
-	if !ok {
+	if !ok || firstExecRequestCommand.Command == nil {
 		return fmt.Errorf("first exec request should describe a command to execute")
 	}
 
@@ -62,16 +63,48 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 		execCtx = context.Background()
 	}
 
-	cmd := rpc.execCommand(execCtx, firstExecRequestCommand.Command.GetName(),
-		firstExecRequestCommand.Command.GetArgs())
+	command := firstExecRequestCommand.Command
+	managed := strings.HasPrefix(command.GetUser(), guestuser.UsernamePrefix)
+	if rpc.users != nil && !managed {
+		return status.Error(codes.FailedPrecondition, "managed-user mode requires a managed user")
+	}
+	var cmd *exec.Cmd
+	var prefix []byte
+	var cancelExec context.CancelFunc
+	if managed { //nolint:nestif // Reserve the selected user before constructing its privileged helper.
+		if rpc.users == nil {
+			return status.Error(codes.FailedPrecondition, "managed users are not enabled")
+		}
+		if command.GetDetach() || command.GetTty() {
+			return status.Error(codes.InvalidArgument, "managed users require attached execution without a terminal")
+		}
+		user, userCtx, release, err := rpc.users.Acquire(execCtx, command.GetUser())
+		if err != nil {
+			return userRPCError(err)
+		}
+		defer release()
+		execCtx, cancelExec = context.WithCancel(userCtx)
+		defer cancelExec()
+		cmd, prefix, err = rpc.userCommand(execCtx, user, command.GetName(), command.GetArgs(),
+			command.GetEnv(), command.GetWorkdir())
+		if err != nil {
+			return userRPCError(err)
+		}
+		defer clear(prefix)
+	} else {
+		cmd = rpc.execCommand(execCtx, command.GetName(), command.GetArgs())
+	}
+	if cmd.SysProcAttr == nil {
+		cmd.SysProcAttr = &syscall.SysProcAttr{}
+	}
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{}
+	if !managed {
+		if err := applyExecOverrides(cmd, command); err != nil {
+			zap.S().Warnf("failed to configure %s: %v", formatCommandAndArgs(firstExecRequestCommand.Command.GetName(),
+				firstExecRequestCommand.Command.GetArgs()), err)
 
-	if err := applyExecOverrides(cmd, firstExecRequestCommand.Command); err != nil {
-		zap.S().Warnf("failed to configure %s: %v", formatCommandAndArgs(firstExecRequestCommand.Command.GetName(),
-			firstExecRequestCommand.Command.GetArgs()), err)
-
-		return sendStartFailure(stream)
+			return sendStartFailure(stream)
+		}
 	}
 
 	if firstExecRequestCommand.Command.Detach {
@@ -135,7 +168,7 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 		// Start the command in its own process group so signals reach all descendants
 		cmd.SysProcAttr.Setpgid = true
 
-		if firstExecRequestCommand.Command.Interactive {
+		if firstExecRequestCommand.Command.GetInteractive() || managed {
 			stdin, err = cmd.StdinPipe()
 			if err != nil {
 				return err
@@ -159,7 +192,38 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 		zap.S().Warnf("failed to start %s: %v", formatCommandAndArgs(firstExecRequestCommand.Command.GetName(),
 			firstExecRequestCommand.Command.GetArgs()), err)
 
+		if managed {
+			return sendManagedResponse(execCtx, stream, &v1.ExecResponse{
+				Type: &v1.ExecResponse_Exit_{Exit: &v1.ExecResponse_Exit{Code: execRuntimeFailureExitCode}},
+			})
+		}
 		return sendStartFailure(stream)
+	}
+	waited := false
+	if managed { //nolint:nestif // Every post-start failure must cancel and reap before releasing the user.
+		stopClosing := context.AfterFunc(execCtx, func() {
+			_ = stdin.Close()
+			_ = stdout.Close()
+			_ = stderr.Close()
+		})
+		defer stopClosing()
+		defer func() {
+			if !waited {
+				cancelExec()
+				_ = cmd.Wait()
+			}
+		}()
+		if n, err := stdin.Write(prefix); err != nil {
+			return err
+		} else if n != len(prefix) {
+			return io.ErrShortWrite
+		}
+		clear(prefix)
+		if !command.GetInteractive() {
+			if err := stdin.Close(); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Ensure the PTY is closed if sending the Started response fails
@@ -172,31 +236,87 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 	defer rpc.execs.Delete(execID)
 
 	// Explicitly notify the client that the process was started
-	err = sendStartSuccess(stream, execID)
+	if managed {
+		err = sendManagedResponse(execCtx, stream, &v1.ExecResponse{
+			Type: &v1.ExecResponse_Started_{Started: &v1.ExecResponse_Started{ExecId: execID}},
+		})
+	} else {
+		err = sendStartSuccess(stream, execID)
+	}
 	if err != nil {
 		// Output readers have not started yet, so cancel and reap directly
 		_ = cmd.Cancel()
 		_ = cmd.Wait()
+		waited = true
 
 		return err
 	}
 
+	// Serialize input acknowledgements with command output and the terminal response.
+	var sendMutex sync.Mutex
+	finished := false
+	sendResponse := func(response *v1.ExecResponse) error {
+		sendMutex.Lock()
+		defer sendMutex.Unlock()
+		if managed && finished {
+			return context.Canceled
+		}
+		if managed {
+			return sendManagedResponse(execCtx, stream, response)
+		}
+		return stream.Send(response)
+	}
+
 	// Handle standard input and terminal resize events from the client
+	var inputMutex sync.Mutex
+	inputFinished := false
 	fromClientErrCh := make(chan error, 1)
 	reportClientError := func(err error) {
 		fromClientErrCh <- err
-		_ = cmd.Cancel()
+		if managed {
+			cancelExec()
+		} else {
+			_ = cmd.Cancel()
+		}
 	}
 
 	go func() {
-		var stdinClosed bool
+		stdinClosed := managed && !command.GetInteractive()
+		var inputOffset uint64
+		acceptInput := func(data []byte) error {
+			inputMutex.Lock()
+			defer inputMutex.Unlock()
+			if managed && inputFinished {
+				return context.Canceled
+			}
+			if len(data) == 0 {
+				if err := closeStdin(stdin, command.GetTty(), &stdinClosed); err != nil {
+					return err
+				}
+			} else {
+				n, err := stdin.Write(data)
+				inputOffset += uint64(n)
+				if err != nil {
+					return err
+				}
+				if n != len(data) {
+					return io.ErrShortWrite
+				}
+			}
+			if !managed || !command.GetInteractive() {
+				return nil
+			}
+			return sendResponse(&v1.ExecResponse{Type: &v1.ExecResponse_InputAck_{
+				InputAck: &v1.ExecResponse_InputAck{Offset: inputOffset, Eof: stdinClosed},
+			}})
+		}
 
 		for {
 			request, err := stream.Recv()
 			if err != nil {
 				// Allow the client to close its sending side while continuing to receive responses
 				if errors.Is(err, io.EOF) {
-					if err := closeStdin(stdin, firstExecRequestCommand.Command.GetTty(), &stdinClosed); err != nil {
+					if err := acceptInput(nil); err != nil {
 						reportClientError(err)
 					}
 
@@ -213,25 +333,17 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 			switch typedAction := request.Type.(type) {
 			case *v1.ExecRequest_StandardInput:
 				if !firstExecRequestCommand.Command.Interactive {
+					if managed {
+						reportClientError(status.Error(codes.InvalidArgument, "standard input requires interactive execution"))
+						return
+					}
 					// Ignore standard input from the client
 					// as non-interactive command is running
 					continue
 				}
 
-				// Check if the remote client has received EOF on their standard input
-				if len(typedAction.StandardInput.Data) == 0 {
-					if err := closeStdin(stdin, firstExecRequestCommand.Command.GetTty(), &stdinClosed); err != nil {
-						reportClientError(err)
-
-						return
-					}
-
-					continue
-				}
-
-				if _, err := stdin.Write(typedAction.StandardInput.GetData()); err != nil {
+				if err := acceptInput(typedAction.StandardInput.GetData()); err != nil {
 					reportClientError(err)
-
 					return
 				}
 			case *v1.ExecRequest_TerminalResize:
@@ -253,20 +365,16 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 		}
 	}()
 
-	// Serialize responses from the stdout and stderr goroutines
-	var sendMutex sync.Mutex
-
-	sendResponse := func(response *v1.ExecResponse) error {
-		sendMutex.Lock()
-		defer sendMutex.Unlock()
-
-		return stream.Send(response)
+	group, _ := errgroup.WithContext(stream.Context())
+	cancelOutputError := func(err *error) {
+		if managed && *err != nil {
+			cancelExec()
+		}
 	}
 
-	group, _ := errgroup.WithContext(stream.Context())
-
 	// Handle standard output from the command
-	group.Go(func() error {
+	group.Go(func() (outputErr error) { //nolint:nonamedreturns // The defer cancels execution on any output failure.
+		defer cancelOutputError(&outputErr)
 		buf := make([]byte, standardStreamsBufferSize)
 
 		for {
@@ -301,7 +409,8 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 	// Note that it makes no sense to handle standard error when TTY is requested
 	// because in this case stdout and stderr will point to the same file descriptor
 	if !firstExecRequestCommand.Command.Tty {
-		group.Go(func() error {
+		group.Go(func() (outputErr error) { //nolint:nonamedreturns // The defer cancels execution on any output failure.
+			defer cancelOutputError(&outputErr)
 			buf := make([]byte, standardStreamsBufferSize)
 
 			for {
@@ -327,21 +436,33 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 		})
 	}
 
-	if err := group.Wait(); err != nil {
-		zap.S().Warnf("%v", err)
+	outputErr := group.Wait()
+	if outputErr != nil {
+		zap.S().Warnf("%v", outputErr)
 	}
 
 	// Wait for the command to finish
 	err = cmd.Wait()
-
-	// Minimize the window in which a finished exec can still be signaled
+	waited = true
+	// Remove the signal target before waiting for any final input acknowledgement.
 	rpc.execs.Delete(execID)
+	if managed {
+		inputMutex.Lock()
+		inputFinished = true
+		sendMutex.Lock()
+		finished = true
+		sendMutex.Unlock()
+		inputMutex.Unlock()
+	}
 
 	// Prefer a client error over the command exit result
 	select {
 	case err := <-fromClientErrCh:
 		return err
 	default:
+	}
+	if managed && outputErr != nil {
+		return outputErr
 	}
 
 	exitCode := 0
@@ -360,13 +481,37 @@ func (rpc *RPC) Exec(stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResp
 		}
 	}
 
-	return stream.Send(&v1.ExecResponse{
+	response := &v1.ExecResponse{
 		Type: &v1.ExecResponse_Exit_{
 			Exit: &v1.ExecResponse_Exit{
 				Code: int32(exitCode),
 			},
 		},
-	})
+	}
+	if managed {
+		return sendManagedResponse(execCtx, stream, response)
+	}
+	return stream.Send(response)
+}
+
+// A slow reader must not prevent user deletion from canceling and reaping a
+// command. Returning the RPC closes the transport and unblocks its pending Send.
+func sendManagedResponse(
+	ctx context.Context,
+	stream grpc.BidiStreamingServer[v1.ExecRequest, v1.ExecResponse],
+	response *v1.ExecResponse,
+) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	result := make(chan error, 1)
+	go func() { result <- stream.Send(response) }()
+	select {
+	case err := <-result:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func signalProcessGroup(process *os.Process, signal syscall.Signal) error {

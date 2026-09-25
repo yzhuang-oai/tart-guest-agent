@@ -28,3 +28,18 @@ func TestExecWrapperFlagPreservesArguments(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, argv)
 }
+
+func TestManagedUsersRejectIncompatibleComponents(t *testing.T) {
+	const manageUsers = "--manage-users"
+	const runRPC = "--run-rpc"
+	for _, args := range [][]string{
+		{manageUsers},
+		{manageUsers, "--run-agent"},
+		{manageUsers, runRPC, "--run-vdagent"},
+		{manageUsers, runRPC, "--exec-wrapper=/usr/bin/env"},
+	} {
+		cmd := command.NewRootCommand()
+		cmd.SetArgs(args)
+		require.ErrorContains(t, cmd.Execute(), "--manage-users requires --run-rpc")
+	}
+}

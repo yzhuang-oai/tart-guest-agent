@@ -68,7 +68,247 @@ func (x SignalRequest_Signal) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SignalRequest_Signal.Descriptor instead.
 func (SignalRequest_Signal) EnumDescriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{6, 0}
+	return file_v1_agent_proto_rawDescGZIP(), []int{10, 0}
+}
+
+type UserInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BootId        string                 `protobuf:"bytes,1,opt,name=boot_id,json=bootId,proto3" json:"boot_id,omitempty"`
+	Healthy       bool                   `protobuf:"varint,2,opt,name=healthy,proto3" json:"healthy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserInfoResponse) Reset() {
+	*x = UserInfoResponse{}
+	mi := &file_v1_agent_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserInfoResponse) ProtoMessage() {}
+
+func (x *UserInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_agent_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserInfoResponse.ProtoReflect.Descriptor instead.
+func (*UserInfoResponse) Descriptor() ([]byte, []int) {
+	return file_v1_agent_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *UserInfoResponse) GetBootId() string {
+	if x != nil {
+		return x.BootId
+	}
+	return ""
+}
+
+func (x *UserInfoResponse) GetHealthy() bool {
+	if x != nil {
+		return x.Healthy
+	}
+	return false
+}
+
+type CreateUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RequestId     string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	BootId        string                 `protobuf:"bytes,2,opt,name=boot_id,json=bootId,proto3" json:"boot_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateUserRequest) Reset() {
+	*x = CreateUserRequest{}
+	mi := &file_v1_agent_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateUserRequest) ProtoMessage() {}
+
+func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_agent_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
+func (*CreateUserRequest) Descriptor() ([]byte, []int) {
+	return file_v1_agent_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CreateUserRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *CreateUserRequest) GetBootId() string {
+	if x != nil {
+		return x.BootId
+	}
+	return ""
+}
+
+type DeleteUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BootId        string                 `protobuf:"bytes,2,opt,name=boot_id,json=bootId,proto3" json:"boot_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserRequest) Reset() {
+	*x = DeleteUserRequest{}
+	mi := &file_v1_agent_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserRequest) ProtoMessage() {}
+
+func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_agent_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
+func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
+	return file_v1_agent_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DeleteUserRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DeleteUserRequest) GetBootId() string {
+	if x != nil {
+		return x.BootId
+	}
+	return ""
+}
+
+type ManagedUser struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username           string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Uid                uint32                 `protobuf:"varint,3,opt,name=uid,proto3" json:"uid,omitempty"`
+	Gid                uint32                 `protobuf:"varint,4,opt,name=gid,proto3" json:"gid,omitempty"`
+	Home               string                 `protobuf:"bytes,5,opt,name=home,proto3" json:"home,omitempty"`
+	TemporaryDirectory string                 `protobuf:"bytes,6,opt,name=temporary_directory,json=temporaryDirectory,proto3" json:"temporary_directory,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ManagedUser) Reset() {
+	*x = ManagedUser{}
+	mi := &file_v1_agent_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ManagedUser) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ManagedUser) ProtoMessage() {}
+
+func (x *ManagedUser) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_agent_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ManagedUser.ProtoReflect.Descriptor instead.
+func (*ManagedUser) Descriptor() ([]byte, []int) {
+	return file_v1_agent_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ManagedUser) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ManagedUser) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *ManagedUser) GetUid() uint32 {
+	if x != nil {
+		return x.Uid
+	}
+	return 0
+}
+
+func (x *ManagedUser) GetGid() uint32 {
+	if x != nil {
+		return x.Gid
+	}
+	return 0
+}
+
+func (x *ManagedUser) GetHome() string {
+	if x != nil {
+		return x.Home
+	}
+	return ""
+}
+
+func (x *ManagedUser) GetTemporaryDirectory() string {
+	if x != nil {
+		return x.TemporaryDirectory
+	}
+	return ""
 }
 
 type ExecRequest struct {
@@ -85,7 +325,7 @@ type ExecRequest struct {
 
 func (x *ExecRequest) Reset() {
 	*x = ExecRequest{}
-	mi := &file_v1_agent_proto_msgTypes[0]
+	mi := &file_v1_agent_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -97,7 +337,7 @@ func (x *ExecRequest) String() string {
 func (*ExecRequest) ProtoMessage() {}
 
 func (x *ExecRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[0]
+	mi := &file_v1_agent_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -110,7 +350,7 @@ func (x *ExecRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecRequest.ProtoReflect.Descriptor instead.
 func (*ExecRequest) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{0}
+	return file_v1_agent_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ExecRequest) GetType() isExecRequest_Type {
@@ -177,6 +417,7 @@ type ExecResponse struct {
 	//	*ExecResponse_StandardOutput
 	//	*ExecResponse_StandardError
 	//	*ExecResponse_Started_
+	//	*ExecResponse_InputAck_
 	Type          isExecResponse_Type `protobuf_oneof:"type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -184,7 +425,7 @@ type ExecResponse struct {
 
 func (x *ExecResponse) Reset() {
 	*x = ExecResponse{}
-	mi := &file_v1_agent_proto_msgTypes[1]
+	mi := &file_v1_agent_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -196,7 +437,7 @@ func (x *ExecResponse) String() string {
 func (*ExecResponse) ProtoMessage() {}
 
 func (x *ExecResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[1]
+	mi := &file_v1_agent_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -209,7 +450,7 @@ func (x *ExecResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecResponse.ProtoReflect.Descriptor instead.
 func (*ExecResponse) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{1}
+	return file_v1_agent_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ExecResponse) GetType() isExecResponse_Type {
@@ -255,6 +496,15 @@ func (x *ExecResponse) GetStarted() *ExecResponse_Started {
 	return nil
 }
 
+func (x *ExecResponse) GetInputAck() *ExecResponse_InputAck {
+	if x != nil {
+		if x, ok := x.Type.(*ExecResponse_InputAck_); ok {
+			return x.InputAck
+		}
+	}
+	return nil
+}
+
 type isExecResponse_Type interface {
 	isExecResponse_Type()
 }
@@ -275,6 +525,10 @@ type ExecResponse_Started_ struct {
 	Started *ExecResponse_Started `protobuf:"bytes,4,opt,name=started,proto3,oneof"`
 }
 
+type ExecResponse_InputAck_ struct {
+	InputAck *ExecResponse_InputAck `protobuf:"bytes,5,opt,name=input_ack,json=inputAck,proto3,oneof"`
+}
+
 func (*ExecResponse_Exit_) isExecResponse_Type() {}
 
 func (*ExecResponse_StandardOutput) isExecResponse_Type() {}
@@ -282,6 +536,8 @@ func (*ExecResponse_StandardOutput) isExecResponse_Type() {}
 func (*ExecResponse_StandardError) isExecResponse_Type() {}
 
 func (*ExecResponse_Started_) isExecResponse_Type() {}
+
+func (*ExecResponse_InputAck_) isExecResponse_Type() {}
 
 type TerminalSize struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -293,7 +549,7 @@ type TerminalSize struct {
 
 func (x *TerminalSize) Reset() {
 	*x = TerminalSize{}
-	mi := &file_v1_agent_proto_msgTypes[2]
+	mi := &file_v1_agent_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -305,7 +561,7 @@ func (x *TerminalSize) String() string {
 func (*TerminalSize) ProtoMessage() {}
 
 func (x *TerminalSize) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[2]
+	mi := &file_v1_agent_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -318,7 +574,7 @@ func (x *TerminalSize) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TerminalSize.ProtoReflect.Descriptor instead.
 func (*TerminalSize) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{2}
+	return file_v1_agent_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *TerminalSize) GetRows() uint32 {
@@ -344,7 +600,7 @@ type IOChunk struct {
 
 func (x *IOChunk) Reset() {
 	*x = IOChunk{}
-	mi := &file_v1_agent_proto_msgTypes[3]
+	mi := &file_v1_agent_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -356,7 +612,7 @@ func (x *IOChunk) String() string {
 func (*IOChunk) ProtoMessage() {}
 
 func (x *IOChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[3]
+	mi := &file_v1_agent_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -369,7 +625,7 @@ func (x *IOChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IOChunk.ProtoReflect.Descriptor instead.
 func (*IOChunk) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{3}
+	return file_v1_agent_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *IOChunk) GetData() []byte {
@@ -387,7 +643,7 @@ type ResolveIPRequest struct {
 
 func (x *ResolveIPRequest) Reset() {
 	*x = ResolveIPRequest{}
-	mi := &file_v1_agent_proto_msgTypes[4]
+	mi := &file_v1_agent_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -399,7 +655,7 @@ func (x *ResolveIPRequest) String() string {
 func (*ResolveIPRequest) ProtoMessage() {}
 
 func (x *ResolveIPRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[4]
+	mi := &file_v1_agent_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -412,7 +668,7 @@ func (x *ResolveIPRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveIPRequest.ProtoReflect.Descriptor instead.
 func (*ResolveIPRequest) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{4}
+	return file_v1_agent_proto_rawDescGZIP(), []int{8}
 }
 
 type ResolveIPResponse struct {
@@ -424,7 +680,7 @@ type ResolveIPResponse struct {
 
 func (x *ResolveIPResponse) Reset() {
 	*x = ResolveIPResponse{}
-	mi := &file_v1_agent_proto_msgTypes[5]
+	mi := &file_v1_agent_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -436,7 +692,7 @@ func (x *ResolveIPResponse) String() string {
 func (*ResolveIPResponse) ProtoMessage() {}
 
 func (x *ResolveIPResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[5]
+	mi := &file_v1_agent_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -449,7 +705,7 @@ func (x *ResolveIPResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveIPResponse.ProtoReflect.Descriptor instead.
 func (*ResolveIPResponse) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{5}
+	return file_v1_agent_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ResolveIPResponse) GetIp() string {
@@ -469,7 +725,7 @@ type SignalRequest struct {
 
 func (x *SignalRequest) Reset() {
 	*x = SignalRequest{}
-	mi := &file_v1_agent_proto_msgTypes[6]
+	mi := &file_v1_agent_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -481,7 +737,7 @@ func (x *SignalRequest) String() string {
 func (*SignalRequest) ProtoMessage() {}
 
 func (x *SignalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[6]
+	mi := &file_v1_agent_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -494,7 +750,7 @@ func (x *SignalRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignalRequest.ProtoReflect.Descriptor instead.
 func (*SignalRequest) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{6}
+	return file_v1_agent_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SignalRequest) GetExecId() string {
@@ -528,7 +784,7 @@ type ExecRequest_Command struct {
 
 func (x *ExecRequest_Command) Reset() {
 	*x = ExecRequest_Command{}
-	mi := &file_v1_agent_proto_msgTypes[7]
+	mi := &file_v1_agent_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -540,7 +796,7 @@ func (x *ExecRequest_Command) String() string {
 func (*ExecRequest_Command) ProtoMessage() {}
 
 func (x *ExecRequest_Command) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[7]
+	mi := &file_v1_agent_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,7 +809,7 @@ func (x *ExecRequest_Command) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecRequest_Command.ProtoReflect.Descriptor instead.
 func (*ExecRequest_Command) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{0, 0}
+	return file_v1_agent_proto_rawDescGZIP(), []int{4, 0}
 }
 
 func (x *ExecRequest_Command) GetName() string {
@@ -628,7 +884,7 @@ type ExecResponse_Exit struct {
 
 func (x *ExecResponse_Exit) Reset() {
 	*x = ExecResponse_Exit{}
-	mi := &file_v1_agent_proto_msgTypes[9]
+	mi := &file_v1_agent_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -640,7 +896,7 @@ func (x *ExecResponse_Exit) String() string {
 func (*ExecResponse_Exit) ProtoMessage() {}
 
 func (x *ExecResponse_Exit) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[9]
+	mi := &file_v1_agent_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -653,7 +909,7 @@ func (x *ExecResponse_Exit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecResponse_Exit.ProtoReflect.Descriptor instead.
 func (*ExecResponse_Exit) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{1, 0}
+	return file_v1_agent_proto_rawDescGZIP(), []int{5, 0}
 }
 
 func (x *ExecResponse_Exit) GetCode() int32 {
@@ -672,7 +928,7 @@ type ExecResponse_Started struct {
 
 func (x *ExecResponse_Started) Reset() {
 	*x = ExecResponse_Started{}
-	mi := &file_v1_agent_proto_msgTypes[10]
+	mi := &file_v1_agent_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -684,7 +940,7 @@ func (x *ExecResponse_Started) String() string {
 func (*ExecResponse_Started) ProtoMessage() {}
 
 func (x *ExecResponse_Started) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_agent_proto_msgTypes[10]
+	mi := &file_v1_agent_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -697,7 +953,7 @@ func (x *ExecResponse_Started) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecResponse_Started.ProtoReflect.Descriptor instead.
 func (*ExecResponse_Started) Descriptor() ([]byte, []int) {
-	return file_v1_agent_proto_rawDescGZIP(), []int{1, 1}
+	return file_v1_agent_proto_rawDescGZIP(), []int{5, 1}
 }
 
 func (x *ExecResponse_Started) GetExecId() string {
@@ -707,11 +963,82 @@ func (x *ExecResponse_Started) GetExecId() string {
 	return ""
 }
 
+// Managed-user commands acknowledge actual stdin writes. Offset excludes
+// private launch data; eof confirms the workload's stdin was closed.
+type ExecResponse_InputAck struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Offset        uint64                 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Eof           bool                   `protobuf:"varint,2,opt,name=eof,proto3" json:"eof,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExecResponse_InputAck) Reset() {
+	*x = ExecResponse_InputAck{}
+	mi := &file_v1_agent_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecResponse_InputAck) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecResponse_InputAck) ProtoMessage() {}
+
+func (x *ExecResponse_InputAck) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_agent_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecResponse_InputAck.ProtoReflect.Descriptor instead.
+func (*ExecResponse_InputAck) Descriptor() ([]byte, []int) {
+	return file_v1_agent_proto_rawDescGZIP(), []int{5, 2}
+}
+
+func (x *ExecResponse_InputAck) GetOffset() uint64 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ExecResponse_InputAck) GetEof() bool {
+	if x != nil {
+		return x.Eof
+	}
+	return false
+}
+
 var File_v1_agent_proto protoreflect.FileDescriptor
 
 const file_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x0ev1/agent.proto\x1a\x1bgoogle/protobuf/empty.proto\"\xff\x03\n" +
+	"\x0ev1/agent.proto\x1a\x1bgoogle/protobuf/empty.proto\"E\n" +
+	"\x10UserInfoResponse\x12\x17\n" +
+	"\aboot_id\x18\x01 \x01(\tR\x06bootId\x12\x18\n" +
+	"\ahealthy\x18\x02 \x01(\bR\ahealthy\"K\n" +
+	"\x11CreateUserRequest\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x01 \x01(\tR\trequestId\x12\x17\n" +
+	"\aboot_id\x18\x02 \x01(\tR\x06bootId\"<\n" +
+	"\x11DeleteUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\aboot_id\x18\x02 \x01(\tR\x06bootId\"\xa2\x01\n" +
+	"\vManagedUser\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
+	"\x03uid\x18\x03 \x01(\rR\x03uid\x12\x10\n" +
+	"\x03gid\x18\x04 \x01(\rR\x03gid\x12\x12\n" +
+	"\x04home\x18\x05 \x01(\tR\x04home\x12/\n" +
+	"\x13temporary_directory\x18\x06 \x01(\tR\x12temporaryDirectory\"\xff\x03\n" +
 	"\vExecRequest\x120\n" +
 	"\acommand\x18\x01 \x01(\v2\x14.ExecRequest.CommandH\x00R\acommand\x121\n" +
 	"\x0estandard_input\x18\x02 \x01(\v2\b.IOChunkH\x00R\rstandardInput\x128\n" +
@@ -729,16 +1056,20 @@ const file_v1_agent_proto_rawDesc = "" +
 	"\bEnvEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x06\n" +
-	"\x04type\"\x9b\x02\n" +
+	"\x04type\"\x88\x03\n" +
 	"\fExecResponse\x12(\n" +
 	"\x04exit\x18\x01 \x01(\v2\x12.ExecResponse.ExitH\x00R\x04exit\x123\n" +
 	"\x0fstandard_output\x18\x02 \x01(\v2\b.IOChunkH\x00R\x0estandardOutput\x121\n" +
 	"\x0estandard_error\x18\x03 \x01(\v2\b.IOChunkH\x00R\rstandardError\x121\n" +
-	"\astarted\x18\x04 \x01(\v2\x15.ExecResponse.StartedH\x00R\astarted\x1a\x1a\n" +
+	"\astarted\x18\x04 \x01(\v2\x15.ExecResponse.StartedH\x00R\astarted\x125\n" +
+	"\tinput_ack\x18\x05 \x01(\v2\x16.ExecResponse.InputAckH\x00R\binputAck\x1a\x1a\n" +
 	"\x04Exit\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x1a\"\n" +
 	"\aStarted\x12\x17\n" +
-	"\aexec_id\x18\x01 \x01(\tR\x06execIdB\x06\n" +
+	"\aexec_id\x18\x01 \x01(\tR\x06execId\x1a4\n" +
+	"\bInputAck\x12\x16\n" +
+	"\x06offset\x18\x01 \x01(\x04R\x06offset\x12\x10\n" +
+	"\x03eof\x18\x02 \x01(\bR\x03eofB\x06\n" +
 	"\x04type\"6\n" +
 	"\fTerminalSize\x12\x12\n" +
 	"\x04rows\x18\x01 \x01(\rR\x04rows\x12\x12\n" +
@@ -754,11 +1085,16 @@ const file_v1_agent_proto_rawDesc = "" +
 	"\x06Signal\x12\x16\n" +
 	"\x12SIGNAL_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eSIGNAL_SIGTERM\x10\x01\x12\x12\n" +
-	"\x0eSIGNAL_SIGKILL\x10\x022\x96\x01\n" +
+	"\x0eSIGNAL_SIGKILL\x10\x022\xb7\x02\n" +
 	"\x05Agent\x12'\n" +
 	"\x04Exec\x12\f.ExecRequest\x1a\r.ExecResponse(\x010\x01\x120\n" +
 	"\x06Signal\x12\x0e.SignalRequest\x1a\x16.google.protobuf.Empty\x122\n" +
-	"\tResolveIP\x12\x11.ResolveIPRequest\x1a\x12.ResolveIPResponseB/Z-github.com/cirruslabs/tart-guest-agent/pkg/v1b\x06proto3"
+	"\tResolveIP\x12\x11.ResolveIPRequest\x1a\x12.ResolveIPResponse\x125\n" +
+	"\bUserInfo\x12\x16.google.protobuf.Empty\x1a\x11.UserInfoResponse\x12.\n" +
+	"\n" +
+	"CreateUser\x12\x12.CreateUserRequest\x1a\f.ManagedUser\x128\n" +
+	"\n" +
+	"DeleteUser\x12\x12.DeleteUserRequest\x1a\x16.google.protobuf.EmptyB/Z-github.com/cirruslabs/tart-guest-agent/pkg/v1b\x06proto3"
 
 var (
 	file_v1_agent_proto_rawDescOnce sync.Once
@@ -773,44 +1109,56 @@ func file_v1_agent_proto_rawDescGZIP() []byte {
 }
 
 var file_v1_agent_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_v1_agent_proto_goTypes = []any{
-	(SignalRequest_Signal)(0),    // 0: SignalRequest.Signal
-	(*ExecRequest)(nil),          // 1: ExecRequest
-	(*ExecResponse)(nil),         // 2: ExecResponse
-	(*TerminalSize)(nil),         // 3: TerminalSize
-	(*IOChunk)(nil),              // 4: IOChunk
-	(*ResolveIPRequest)(nil),     // 5: ResolveIPRequest
-	(*ResolveIPResponse)(nil),    // 6: ResolveIPResponse
-	(*SignalRequest)(nil),        // 7: SignalRequest
-	(*ExecRequest_Command)(nil),  // 8: ExecRequest.Command
-	nil,                          // 9: ExecRequest.Command.EnvEntry
-	(*ExecResponse_Exit)(nil),    // 10: ExecResponse.Exit
-	(*ExecResponse_Started)(nil), // 11: ExecResponse.Started
-	(*emptypb.Empty)(nil),        // 12: google.protobuf.Empty
+	(SignalRequest_Signal)(0),     // 0: SignalRequest.Signal
+	(*UserInfoResponse)(nil),      // 1: UserInfoResponse
+	(*CreateUserRequest)(nil),     // 2: CreateUserRequest
+	(*DeleteUserRequest)(nil),     // 3: DeleteUserRequest
+	(*ManagedUser)(nil),           // 4: ManagedUser
+	(*ExecRequest)(nil),           // 5: ExecRequest
+	(*ExecResponse)(nil),          // 6: ExecResponse
+	(*TerminalSize)(nil),          // 7: TerminalSize
+	(*IOChunk)(nil),               // 8: IOChunk
+	(*ResolveIPRequest)(nil),      // 9: ResolveIPRequest
+	(*ResolveIPResponse)(nil),     // 10: ResolveIPResponse
+	(*SignalRequest)(nil),         // 11: SignalRequest
+	(*ExecRequest_Command)(nil),   // 12: ExecRequest.Command
+	nil,                           // 13: ExecRequest.Command.EnvEntry
+	(*ExecResponse_Exit)(nil),     // 14: ExecResponse.Exit
+	(*ExecResponse_Started)(nil),  // 15: ExecResponse.Started
+	(*ExecResponse_InputAck)(nil), // 16: ExecResponse.InputAck
+	(*emptypb.Empty)(nil),         // 17: google.protobuf.Empty
 }
 var file_v1_agent_proto_depIdxs = []int32{
-	8,  // 0: ExecRequest.command:type_name -> ExecRequest.Command
-	4,  // 1: ExecRequest.standard_input:type_name -> IOChunk
-	3,  // 2: ExecRequest.terminal_resize:type_name -> TerminalSize
-	10, // 3: ExecResponse.exit:type_name -> ExecResponse.Exit
-	4,  // 4: ExecResponse.standard_output:type_name -> IOChunk
-	4,  // 5: ExecResponse.standard_error:type_name -> IOChunk
-	11, // 6: ExecResponse.started:type_name -> ExecResponse.Started
-	0,  // 7: SignalRequest.signal:type_name -> SignalRequest.Signal
-	3,  // 8: ExecRequest.Command.terminal_size:type_name -> TerminalSize
-	9,  // 9: ExecRequest.Command.env:type_name -> ExecRequest.Command.EnvEntry
-	1,  // 10: Agent.Exec:input_type -> ExecRequest
-	7,  // 11: Agent.Signal:input_type -> SignalRequest
-	5,  // 12: Agent.ResolveIP:input_type -> ResolveIPRequest
-	2,  // 13: Agent.Exec:output_type -> ExecResponse
-	12, // 14: Agent.Signal:output_type -> google.protobuf.Empty
-	6,  // 15: Agent.ResolveIP:output_type -> ResolveIPResponse
-	13, // [13:16] is the sub-list for method output_type
-	10, // [10:13] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	12, // 0: ExecRequest.command:type_name -> ExecRequest.Command
+	8,  // 1: ExecRequest.standard_input:type_name -> IOChunk
+	7,  // 2: ExecRequest.terminal_resize:type_name -> TerminalSize
+	14, // 3: ExecResponse.exit:type_name -> ExecResponse.Exit
+	8,  // 4: ExecResponse.standard_output:type_name -> IOChunk
+	8,  // 5: ExecResponse.standard_error:type_name -> IOChunk
+	15, // 6: ExecResponse.started:type_name -> ExecResponse.Started
+	16, // 7: ExecResponse.input_ack:type_name -> ExecResponse.InputAck
+	0,  // 8: SignalRequest.signal:type_name -> SignalRequest.Signal
+	7,  // 9: ExecRequest.Command.terminal_size:type_name -> TerminalSize
+	13, // 10: ExecRequest.Command.env:type_name -> ExecRequest.Command.EnvEntry
+	5,  // 11: Agent.Exec:input_type -> ExecRequest
+	11, // 12: Agent.Signal:input_type -> SignalRequest
+	9,  // 13: Agent.ResolveIP:input_type -> ResolveIPRequest
+	17, // 14: Agent.UserInfo:input_type -> google.protobuf.Empty
+	2,  // 15: Agent.CreateUser:input_type -> CreateUserRequest
+	3,  // 16: Agent.DeleteUser:input_type -> DeleteUserRequest
+	6,  // 17: Agent.Exec:output_type -> ExecResponse
+	17, // 18: Agent.Signal:output_type -> google.protobuf.Empty
+	10, // 19: Agent.ResolveIP:output_type -> ResolveIPResponse
+	1,  // 20: Agent.UserInfo:output_type -> UserInfoResponse
+	4,  // 21: Agent.CreateUser:output_type -> ManagedUser
+	17, // 22: Agent.DeleteUser:output_type -> google.protobuf.Empty
+	17, // [17:23] is the sub-list for method output_type
+	11, // [11:17] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_v1_agent_proto_init() }
@@ -818,16 +1166,17 @@ func file_v1_agent_proto_init() {
 	if File_v1_agent_proto != nil {
 		return
 	}
-	file_v1_agent_proto_msgTypes[0].OneofWrappers = []any{
+	file_v1_agent_proto_msgTypes[4].OneofWrappers = []any{
 		(*ExecRequest_Command_)(nil),
 		(*ExecRequest_StandardInput)(nil),
 		(*ExecRequest_TerminalResize)(nil),
 	}
-	file_v1_agent_proto_msgTypes[1].OneofWrappers = []any{
+	file_v1_agent_proto_msgTypes[5].OneofWrappers = []any{
 		(*ExecResponse_Exit_)(nil),
 		(*ExecResponse_StandardOutput)(nil),
 		(*ExecResponse_StandardError)(nil),
 		(*ExecResponse_Started_)(nil),
+		(*ExecResponse_InputAck_)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -835,7 +1184,7 @@ func file_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_agent_proto_rawDesc), len(file_v1_agent_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

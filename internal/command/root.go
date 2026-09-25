@@ -10,6 +10,7 @@ import (
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/cirruslabs/tart-guest-agent/internal/diskresizer"
+	"github.com/cirruslabs/tart-guest-agent/internal/guestuser"
 	"github.com/cirruslabs/tart-guest-agent/internal/logginglevel"
 	"github.com/cirruslabs/tart-guest-agent/internal/rpc"
 	"github.com/cirruslabs/tart-guest-agent/internal/spice/vdagent"
@@ -27,13 +28,19 @@ var resizeDisk bool
 var runVdagent bool
 var runRPC bool
 var execWrapper []string
+var manageUsers bool
+var userConfig guestuser.Config
 
 var runDaemon bool
 var runAgent bool
 
 var debug bool
 
-const componentFailedTimeout = time.Second
+const (
+	componentFailedTimeout = time.Second
+	defaultFirstUserUID    = 20000
+	defaultLastUserUID     = 65000
+)
 
 func NewRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -59,6 +66,14 @@ func NewRootCommand() *cobra.Command {
 		"to support \"tart exec\" functionality)")
 	cmd.Flags().StringArrayVar(&execWrapper, "exec-wrapper", nil,
 		"argv prefix for every RPC command; repeat for each argument (first must be an absolute executable path)")
+	cmd.Flags().BoolVar(&manageUsers, "manage-users", false, "enable disposable macOS users on the root RPC daemon")
+	cmd.Flags().StringVar(&userConfig.ControllerUsername, "controller-user", "",
+		"existing administrator used for managed-user login")
+	cmd.Flags().StringVar(&userConfig.ControllerPasswordFile, "controller-password-file", "",
+		"root-only file containing the controller password")
+	cmd.Flags().Uint32Var(&userConfig.FirstUID, "user-uid-start", defaultFirstUserUID,
+		"first UID available for managed users")
+	cmd.Flags().Uint32Var(&userConfig.LastUID, "user-uid-end", defaultLastUserUID, "last UID available for managed users")
 
 	// Component groups
 	cmd.Flags().BoolVar(&runDaemon, "run-daemon", false, "identical to running the agent"+
@@ -67,6 +82,17 @@ func NewRootCommand() *cobra.Command {
 		"with \"--run-vdagent\" and \"--run-rpc\" command-line arguments")
 
 	cmd.Flags().BoolVar(&debug, "debug", false, "enable debug logging")
+	cmd.AddCommand(newGuestFileReadCommand(), newGuestFileWriteCommand(), &cobra.Command{
+		Use: "guest-user-helper operation", Hidden: true, Args: cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			return guestuser.RunHelper(args[0], os.Stdin, os.Stdout)
+		},
+	}, &cobra.Command{
+		Use: "guest-user-exec", Hidden: true, Args: cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return guestuser.RunExec(os.Stdin)
+		},
+	})
 
 	return cmd
 }
@@ -80,6 +106,9 @@ func run(cmd *cobra.Command, args []string) error {
 	if runAgent {
 		runVdagent = true
 		runRPC = true
+	}
+	if manageUsers && (!runRPC || runVdagent || len(execWrapper) > 0) {
+		return errors.New("--manage-users requires --run-rpc without --run-vdagent, --run-agent, or --exec-wrapper")
 	}
 
 	// Terminate to prevent disk corruption on macOS guests
@@ -98,6 +127,14 @@ func run(cmd *cobra.Command, args []string) error {
 	}
 	if err := rpc.ValidateExecWrapper(execWrapper); err != nil {
 		return err
+	}
+	var users *guestuser.Manager
+	if manageUsers {
+		var err error
+		users, err = guestuser.New(userConfig)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Perform disk resizing
@@ -139,7 +176,7 @@ func run(cmd *cobra.Command, args []string) error {
 	if runRPC {
 		group.Go(func() error {
 			for {
-				if err := runRPCOnce(ctx); err != nil {
+				if err := runRPCOnce(ctx, users); err != nil {
 					return err
 				}
 
@@ -187,7 +224,7 @@ func runVdagentOnce(ctx context.Context) error {
 	return nil
 }
 
-func runRPCOnce(ctx context.Context) error {
+func runRPCOnce(ctx context.Context, users *guestuser.Manager) error {
 	zap.S().Infof("initializing RPC server...")
 
 	listener, err := vsock.Listen(8080)
@@ -198,7 +235,12 @@ func runRPCOnce(ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	rpcServer, err := rpc.New(listener, execWrapper...)
+	var rpcServer *rpc.RPC
+	if users == nil {
+		rpcServer, err = rpc.New(listener, execWrapper...)
+	} else {
+		rpcServer, err = rpc.NewWithUsers(listener, users)
+	}
 	if err != nil {
 		zap.S().Errorf("failed to initialize RPC server: %v", err)
 

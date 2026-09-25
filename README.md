@@ -58,3 +58,15 @@ executable, configuration, and launch settings under the image administrator's
 control, and choose a wrapper whose behavior remains correct
 under those overrides. Only commands started through the guest agent use this
 prefix.
+
+## Disposable macOS users
+
+An opt-in root daemon can create ordinary macOS users, initialize their Aqua
+sessions, and run commands under their UIDs. This is intended for trusted callers
+sharing one VM. Users share the kernel, network and WindowServer; the agent adds
+no sandbox profile or per-user resource quota.
+
+The Agent service adds three methods: `UserInfo`, `CreateUser`, and `DeleteUser`.
+Commands reuse `Exec` with the returned username. The caller owns allocation
+policy, idle timeouts and VM replacement. See [managed users](docs/managed-users.md)
+for setup and failure behavior.

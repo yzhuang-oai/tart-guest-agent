@@ -8,6 +8,34 @@ service Agent {
   rpc Exec(stream ExecRequest) returns (stream ExecResponse);
   rpc Signal(SignalRequest) returns (google.protobuf.Empty);
   rpc ResolveIP(ResolveIPRequest) returns (ResolveIPResponse);
+  // Optional managed macOS users. An unknown boot ID never authorizes mutation.
+  rpc UserInfo(google.protobuf.Empty) returns (UserInfoResponse);
+  rpc CreateUser(CreateUserRequest) returns (ManagedUser);
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+}
+
+message UserInfoResponse {
+  string boot_id = 1;
+  bool healthy = 2;
+}
+
+message CreateUserRequest {
+  string request_id = 1;
+  string boot_id = 2;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+  string boot_id = 2;
+}
+
+message ManagedUser {
+  string id = 1;
+  string username = 2;
+  uint32 uid = 3;
+  uint32 gid = 4;
+  string home = 5;
+  string temporary_directory = 6;
 }
 
 message ExecRequest {
@@ -39,11 +67,19 @@ message ExecResponse {
     string exec_id = 1;
   }
 
+  // Managed-user commands acknowledge actual stdin writes. Offset excludes
+  // private launch data; eof confirms the workload's stdin was closed.
+  message InputAck {
+    uint64 offset = 1;
+    bool eof = 2;
+  }
+
   oneof type {
     Exit exit = 1;
     IOChunk standard_output = 2;
     IOChunk standard_error = 3;
     Started started = 4;
+    InputAck input_ack = 5;
   }
 }
 

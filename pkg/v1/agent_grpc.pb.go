@@ -20,9 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Agent_Exec_FullMethodName      = "/Agent/Exec"
-	Agent_Signal_FullMethodName    = "/Agent/Signal"
-	Agent_ResolveIP_FullMethodName = "/Agent/ResolveIP"
+	Agent_Exec_FullMethodName       = "/Agent/Exec"
+	Agent_Signal_FullMethodName     = "/Agent/Signal"
+	Agent_ResolveIP_FullMethodName  = "/Agent/ResolveIP"
+	Agent_UserInfo_FullMethodName   = "/Agent/UserInfo"
+	Agent_CreateUser_FullMethodName = "/Agent/CreateUser"
+	Agent_DeleteUser_FullMethodName = "/Agent/DeleteUser"
 )
 
 // AgentClient is the client API for Agent service.
@@ -32,6 +35,10 @@ type AgentClient interface {
 	Exec(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ExecRequest, ExecResponse], error)
 	Signal(ctx context.Context, in *SignalRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ResolveIP(ctx context.Context, in *ResolveIPRequest, opts ...grpc.CallOption) (*ResolveIPResponse, error)
+	// Optional managed macOS users. An unknown boot ID never authorizes mutation.
+	UserInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserInfoResponse, error)
+	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*ManagedUser, error)
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type agentClient struct {
@@ -75,6 +82,36 @@ func (c *agentClient) ResolveIP(ctx context.Context, in *ResolveIPRequest, opts 
 	return out, nil
 }
 
+func (c *agentClient) UserInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserInfoResponse)
+	err := c.cc.Invoke(ctx, Agent_UserInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*ManagedUser, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ManagedUser)
+	err := c.cc.Invoke(ctx, Agent_CreateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Agent_DeleteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentServer is the server API for Agent service.
 // All implementations must embed UnimplementedAgentServer
 // for forward compatibility.
@@ -82,6 +119,10 @@ type AgentServer interface {
 	Exec(grpc.BidiStreamingServer[ExecRequest, ExecResponse]) error
 	Signal(context.Context, *SignalRequest) (*emptypb.Empty, error)
 	ResolveIP(context.Context, *ResolveIPRequest) (*ResolveIPResponse, error)
+	// Optional managed macOS users. An unknown boot ID never authorizes mutation.
+	UserInfo(context.Context, *emptypb.Empty) (*UserInfoResponse, error)
+	CreateUser(context.Context, *CreateUserRequest) (*ManagedUser, error)
+	DeleteUser(context.Context, *DeleteUserRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAgentServer()
 }
 
@@ -100,6 +141,15 @@ func (UnimplementedAgentServer) Signal(context.Context, *SignalRequest) (*emptyp
 }
 func (UnimplementedAgentServer) ResolveIP(context.Context, *ResolveIPRequest) (*ResolveIPResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResolveIP not implemented")
+}
+func (UnimplementedAgentServer) UserInfo(context.Context, *emptypb.Empty) (*UserInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserInfo not implemented")
+}
+func (UnimplementedAgentServer) CreateUser(context.Context, *CreateUserRequest) (*ManagedUser, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+}
+func (UnimplementedAgentServer) DeleteUser(context.Context, *DeleteUserRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedAgentServer) mustEmbedUnimplementedAgentServer() {}
 func (UnimplementedAgentServer) testEmbeddedByValue()               {}
@@ -165,6 +215,60 @@ func _Agent_ResolveIP_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Agent_UserInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).UserInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agent_UserInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).UserInfo(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agent_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).CreateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agent_CreateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).CreateUser(ctx, req.(*CreateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agent_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Agent_DeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Agent_ServiceDesc is the grpc.ServiceDesc for Agent service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -179,6 +283,18 @@ var Agent_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResolveIP",
 			Handler:    _Agent_ResolveIP_Handler,
+		},
+		{
+			MethodName: "UserInfo",
+			Handler:    _Agent_UserInfo_Handler,
+		},
+		{
+			MethodName: "CreateUser",
+			Handler:    _Agent_CreateUser_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _Agent_DeleteUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
